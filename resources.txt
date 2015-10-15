@@ -1,0 +1,5 @@
+name,min,max,hp
+mine,100,230,1000
+fighter base,15,25,500
+research facility,0,2,200
+colonized planet,90,100,100

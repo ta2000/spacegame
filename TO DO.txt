@@ -1,0 +1,70 @@
+======== TO DO ========
+Attacking
+	output damage done/hp left on UE locations
+	Only alert attacks near player locations?
+	Fix error after one faction conquers all locations
+		IS ALERTING THE PLAYER OF AI ATTACKS EVEN NECESSARY? SHOULD REMOVE IN FINAL GAME
+
+Garrison ships on targetted locations to increase hp
+	
+Repairing damaged locations with credits (+metal +tech?)
+
+Trade resources method
+
+Add giving tech
+
+Type checking (-_-  )
+
+Factions have location array of locations not hidden to them
+
+Classes in seperate files
+
+(do after necessary stuff for easy multiplayer port)
+	Add favor towards UE/Enemy 
+
+	Add bribing factions to not attack their current target
+
+	Add alliances with factions
+
+	Increasing difficulty with number of UE locations
+
+======== Ideas ========
+Faction class
+	name
+	enemy
+	advantages(?)
+		resource boost
+		damage boost
+		health boost
+	favor (0-100, 50=neutral, 100=UE, 0=Enemy, start 25-75)
+
+Gaining favor
+	Giving tech
+	Attacking a factions target faction
+Losing favor
+	Attacking the faction
+
+
+
+======= Premise =======
+Manage resources
+Ally with factions to get them to join UE
+	Once a faction joins UE all of their resources and locations become yours
+Fight main enemy/other factions
+	Taking over a location through military force makes only that location UE
+
+Main enemy will also try to ally with other factions
+
+Secondary factions (not player or main enemy) will fight each other as well to keep map changing
+
+All factions gain resources each turns
+
+Fighter base + metal -> ships
+Mines -> metal
+Colonized planets -> credits
+Research stations + credits -> tech
+Nations + tech -> favor
+
+androids -> Enemy mine
+
+maxis -> Enemy FB
