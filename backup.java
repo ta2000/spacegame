@@ -195,7 +195,7 @@ class Faction {
 	Faction(String name) {
 		this.name = name;
 		this.attackCool = random.randInt(5,20);
-		this.metal = 80;
+		this.metal = 200;
 		this.ships = 100;
 		this.tech = 0;
 		this.credits = 1000;
@@ -214,7 +214,7 @@ class Faction {
 				if (this.target==null || this.target.faction == this) {
 					this.target = this.randLoc();
 					System.out.println("Our data shows that " + this.name + " is planning to attack a " + this.target.faction.name + " " + this.target.name + " soon.");
-					spacegame.attackLog.add("   " + this.name + " attacking " + this.target.faction.name);
+					spacegame.attackLog.add("   " + this.name + " attacking " + this.target.faction.name + " " + this.target.name);
 				}
 				if (this.attackCool < 1) {
 					this.attackCool = random.randInt(10,30);
@@ -249,7 +249,15 @@ class Faction {
 	public boolean attack(Location targetLoc)
 	{
 		// Pass params to attack()
-		spacegame.attack(this, targetLoc, this.ships);
+		spacegame.attack(this, targetLoc, (targetLoc.hp/7));
+		
+		/* Display extra info - uncomment above line when removing below lines
+		ArrayList<String> outputs = spacegame.attack(this, targetLoc, (targetLoc.hp/7));
+		for (int i=0; i<outputs.size(); i++) {
+			System.out.println(outputs.get(i));
+		}*/
+
+
 		// Broadcast attack outcome
 		if (targetLoc.faction == this) {
 			System.out.print("The " + this.name + " have captured a " + targetLoc.name);
@@ -260,12 +268,13 @@ class Faction {
 			}
 			return true;
 		} else {
-			System.out.println("The " + this.name + " unsuccessfully attacked a " + targetLoc.faction.name + " " + targetLoc.name);
+			System.out.println("The " + this.name + " unsuccessfully attacked a " + targetLoc.faction.name + " " + targetLoc.name + " (" + targetLoc.hp + "/" + targetLoc.maxHp + ").");
 			return false;
 		}
 
 	}
 
+	// Returns every location of specified faction
 	public ArrayList<Location> getLocs()
 	{
 		ArrayList<Location> factionLocs = new ArrayList<Location>();
@@ -295,8 +304,8 @@ class spacegame
 	public static String factionlist[] = {
 		"United Empires",
 		"Enemy",
-		"Spoogoofoops",
-		"Zaxxors",
+		"Maxis",
+		"Humans",
 		"Androids"
 	};
 	public static ArrayList<Faction> factions = new ArrayList<Faction>();
@@ -312,7 +321,7 @@ class spacegame
 		}
 
 		// Load map
-		for (int i=0; i<5; i++) {
+		for (int i=0; i<8; i++) {
 			fileRead.read();
 		}
 		
@@ -337,9 +346,12 @@ class spacegame
 		// Game
 		gametick();
 
+		// For submenus
+		ArrayList<Integer> tempIntArr = new ArrayList<Integer>();
+
 		// Game loop
 		Scanner in = new Scanner(System.in);
-		String uInput = in.next();
+		String uInput = in.next();		
 		while (true)
 		{
 			// Increment turn
@@ -350,10 +362,11 @@ class spacegame
 					System.out.println("---HELP MENU---");
 					System.out.println("Input is accepted in upper and lower case.");
 					System.out.println(" R or RESOURCES will show you your resources.");
-					System.out.println(" ATTACK prompts attack menu\n     X,Y,N will attack galactic coordinates X,Y with N ships.");
-					System.out.println(" ATTACKLOG shows ");
+					System.out.println(" ATTACK prompts attack sub menu\n     X,Y,N will attack galactic coordinates X,Y with N ships.");
+					System.out.println(" LOGS shows attack logs.");
 					System.out.println(" LIST lists all known locations and their factions.");
 					System.out.println(" RSCAN prompts the radar scan menu\n     X,Y of one of your locations will scan nearby occupied locations.");
+					System.out.println(" RSCANALL scans all occupied locations nearby your locations.");					
 					System.out.println(" MAP refreshes the galactic map.");
 					System.out.println(" FMAP shows the faction map.");
 					System.out.println(" C clears the screen");
@@ -363,47 +376,41 @@ class spacegame
 					factions.get(0).print();
 					break;
 				case "VIEW":
-					viewPos();
+						// VIEW - remove this later (shows deatils about any X/Y)
+						tempIntArr = takeInputs(2, "X:,Y:");
+						map[tempIntArr.get(0)-1][tempIntArr.get(1)-1].print();
 					break;
 				case "ATTACK":
-					System.out.println("Enter X and Y coordinate to attack with N ships, X,Y,N");
+						System.out.println("Enter X and Y coordinate to attack with N ships, X,Y,N");
 
-					String attackCmd;
-					attackCmd = in.next();
-
-					int x;
-					int y;
-					int n;
-
-					Scanner lScanner = new Scanner(attackCmd);
-					lScanner.useDelimiter(",");
-					x = lScanner.nextInt();
-					y = lScanner.nextInt();
-					n = lScanner.nextInt();
-
-					if (n>(factions.get(0).ships-1)) {
-						System.out.println("Only " + factions.get(0).ships + " available.");
-						n = factions.get(0).ships;
-					}
-
-					if (map[x-1][y-1].name!="Empty space" || map[x-1][y-1].hidden==false) {
-						System.out.println("Attacking " + x + ", " + y + " ( " + spacegame.map[x-1][y-1].name + ", " + map[x-1][y-1].faction.name + " ) " + " with " + n + " ships.");
+						tempIntArr = takeInputs(3, "X coordinate to attack:,Y coordinate to attack:,Number of ships to attack with:");
 
 
-						ArrayList<String> outputs = attack(factions.get(0), map[x-1][y-1], n);
-						for (int i=0; i<outputs.size(); i++) {
-							System.out.println(outputs.get(i));
+						if (map[tempIntArr.get(0)-1][tempIntArr.get(1)-1].name!="Empty space" || map[tempIntArr.get(0)-1][tempIntArr.get(1)-1].hidden==false) {
+							System.out.println("Attacking " + tempIntArr.get(0) + ", " + tempIntArr.get(1) + " ( " + spacegame.map[tempIntArr.get(0)-1][tempIntArr.get(1)-1].name + ", " + map[tempIntArr.get(0)-1][tempIntArr.get(1)-1].faction.name + " ) " + " with " + tempIntArr.get(2) + " ships.");
+
+
+							ArrayList<String> outputs = attack(factions.get(0), map[tempIntArr.get(0)-1][tempIntArr.get(1)-1], tempIntArr.get(2));
+							for (int i=0; i<outputs.size(); i++) {
+								System.out.println(outputs.get(i));
+							}
+
+						} else {
+							System.out.println("There is nothing here to attack according to our data.");
 						}
-
-					} else {
-						System.out.println("There is nothing here to attack according to our data.");
-					}
 					break;
 				case "LIST":
 					list();
 					break;
 				case "RSCAN":
-					rscan();
+						tempIntArr = takeInputs(2, "X coordinate to scan:,Y coordinate to scan:");
+						rscan(tempIntArr.get(0), tempIntArr.get(1));
+					break;
+				case "RSCANALL":
+					for (int i=0; i<factions.get(0).getLocs().size(); i++) {
+						rscan(factions.get(0).getLocs().get(i).x, factions.get(0).getLocs().get(i).y);
+					}
+					System.out.print("\n");	
 					break;
 				case "MAP":
 					showMap(false);
@@ -423,20 +430,26 @@ class spacegame
 					break;
 				case "COOLS":
 					for (int i=0; i<factions.size(); i++) {
-						System.out.println(factions.get(i).attackCool);
+						System.out.println(factions.get(i).name + " : " + factions.get(i).attackCool);
 					}
 					break;
 				// DEV - SHOWS ALL FACTION LOCATIONS
 				case "FACLOC":
 					for (int i=0; i<factions.size(); i++) {
 						for (int j=0; j<factions.get(i).getLocs().size(); j++) {
-							System.out.println(factions.get(i).name + " : " + factions.get(i).getLocs().get(j).name);
+							System.out.println(factions.get(i).name + " : " + factions.get(i).getLocs().get(j).name + " - hp: " + factions.get(i).getLocs().get(j).hp);
 						}
-						
+						System.out.print("\n");	
+					}
+					break;
+				// DEV - SHOWS ALL FACTION RESOURCES
+				case "FACRES":
+					for (int i=0; i<factions.size(); i++) {
+						factions.get(i).print();
 					}
 					break;
 				case "LOGS":
-					// list attacks
+					// list attack messages
 					for (int i=0; i<attackLog.size(); i++) {
 						System.out.println(attackLog.get(i));
 					}
@@ -452,6 +465,7 @@ class spacegame
 
 			gametick();
 
+
 			uInput = in.next();
 
 			
@@ -459,6 +473,34 @@ class spacegame
 
 	}
 
+	// takeInputs command for submenus
+	public static ArrayList<Integer> takeInputs(int numInputs, String message) {
+		// Messages for each input query
+		ArrayList<String> prompts = new ArrayList<String>();
+
+		// ArrayList to return
+		ArrayList<Integer> inputs = new ArrayList<Integer>();
+
+		// Keyboard input scanner
+		Scanner in = new Scanner(System.in);
+
+		// Message parameter parser
+		Scanner lScanner = new Scanner(message);
+		lScanner.useDelimiter(",");
+		for (int i=0; i<numInputs; i++) {
+			prompts.add(lScanner.next());
+		}
+
+		for (int i=0; i<prompts.size(); i++) {
+			System.out.println(prompts.get(i));
+			inputs.add(in.nextInt());
+		}
+
+		return inputs;
+		
+	}
+
+	// List known faction locations
 	public static void list() {
 		System.out.println("");
 		for (int i=0; i<map.length; i++) {
@@ -471,6 +513,7 @@ class spacegame
 		System.out.println("");
 	}
 
+	// Runs action command every 10 turns
 	public static void gametick() {
 		for (int i=0; i<map.length; i++) {
 			for (int j=0; j<map[0].length; j++) {
@@ -485,6 +528,7 @@ class spacegame
 		}
 	}
 
+	// Draws the map onto the screen - true = factions, false = resources
 	public static void showMap(boolean factions) {
 		// Show galaxy map
 		//System.out.println("\n");
@@ -511,28 +555,8 @@ class spacegame
 		}
 	}
 
-	// RESOURCES
-
-	// RSCAN
-	public static void rscan() {
-
-		// MOVE ALL OF THIS CODE TO WITCH ABOVE - USE SHARED SCANNER FOR ALL MENUS
-
-		System.out.println("Enter X and Y of one of your locations to scan its area");
-
-		Scanner in = new Scanner(System.in);
-
-		String pos;
-		pos = in.next();
-
-		int x;
-		int y;
-
-		Scanner lScanner = new Scanner(pos);
-		lScanner.useDelimiter(",");
-		x = lScanner.nextInt();
-		y = lScanner.nextInt();
-
+	// RSCAN - scans 3x3 around player location X/Y
+	public static void rscan(int x, int y) {
 		boolean foundLoc = false;
 		if (map[x-1][y-1].faction.name=="United Empires") {
 			for (int i=(x-2); i<(x+1); i++) {
@@ -558,30 +582,16 @@ class spacegame
 		
 	}
 
-	// VIEW - remove this later
-	public static void viewPos() {
-		System.out.println("Enter X and Y to view their location data");
-
-		Scanner in = new Scanner(System.in);
-
-		String pos;
-		pos = in.next();
-
-		int x;
-		int y;
-
-		Scanner lScanner = new Scanner(pos);
-		lScanner.useDelimiter(",");
-		x = lScanner.nextInt();
-		y = lScanner.nextInt();
-
-		map[x-1][y-1].print();
-	}
-
 	// ATTACK METHOD
 	public static ArrayList<String> attack(Faction attacker, Location target, int ships) {
 	
 		ArrayList<String> outputs = new ArrayList<String>();
+
+		// Max out ships integer
+		if (ships > attacker.ships) {
+			outputs.add("Only " + attacker.ships + " available out of the " + ships + " requested.");
+			ships = attacker.ships;
+		}
 
 		// Calculations
 		attacker.ships -= ships;
@@ -593,8 +603,8 @@ class spacegame
 		outputs.add("Did " + (tempHp - target.hp) + " damage to target!");
 		if (target.hp < 0) {
 			target.hp = 0;
+			outputs.add(attacker.name + " has successfully taken over the " + target.faction.name + " " + target.name + " at " + target.x + ", " + target.y);
 			target.faction = attacker;
-			outputs.add("You have successfully taken over the " + target.name + " at " + target.x + ", " + target.y);
 			target.hp = target.maxHp;
 		} else {
 			outputs.add("Target has " + target.hp + " health left.");
