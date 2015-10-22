@@ -55,69 +55,6 @@ class Location
 		if (this.faction.name == "United Empires")
 			this.hidden = false;
 
-		if (spacegame.turn % 10 == 0) {
-			this.resourceGain();
-		}
-
-	}
-
-	public void resourceGain()
-	{
-		int temp;
-		switch (this.name) {
-			case "mine":
-					temp = this.faction.metal;
-
-					this.faction.metal+=random.randInt(this.outputMin, this.outputMax);
-
-					if (this.faction.name=="United Empires") {
-						System.out.println("Received " + (this.faction.metal-temp) + " metal from mine at " + this.x + ", " + this.y + ".");
-					}
-				break;
-			case "fighter base":
-					temp = this.faction.ships;
-
-					for (int i=0; i<random.randInt(this.outputMin, this.outputMax); i++) {
-						if (this.faction.metal>=10) {
-							this.faction.ships++;
-							this.faction.metal-=10;
-						}
-					}
-
-					if (this.faction.name=="United Empires") {
-						System.out.println("Received " + (this.faction.ships-temp) + " ships from fighter base at " + this.x + ", " + this.y + ".");
-					}
-				break;
-			case "research facility":
-					temp = this.faction.tech;
-
-					for (int i=0; i<random.randInt(this.outputMin, this.outputMax); i++) {
-						if (this.faction.credits>=100) {
-							this.faction.tech++;
-							this.faction.credits-=100;
-						}
-					}
-
-					if (this.faction.name=="United Empires") {
-						System.out.println("Received " + (this.faction.tech-temp) + " tech from research facility at " + this.x + ", " + this.y + ".");
-					}
-				break;
-			case "colonized planet":
-					temp = this.faction.credits;
-
-					this.faction.credits+=random.randInt(this.outputMin, this.outputMax);
-
-					if (this.faction.name=="United Empires") {
-						System.out.println("Received " + (this.faction.credits-temp) + " credits from colonized planet at " + this.x + ", " + this.y + ".");
-					}
-				break;
-			default:
-					this.faction.credits+=50;
-				break;
-
-		}
-		if (this.name == "United Empires")
-			System.out.println("\n");
 	}
 
 }
@@ -183,31 +120,37 @@ class fileRead
 
 }
 
-class Faction {
+class Faction
+{
 	String name;
 	int attackCool;
-	int metal;
-	int ships;
-	int tech;
-	int credits;
+	int[] resources;
 	Location target = null;
+	ArrayList<TradeRoute> traderoutes = new ArrayList<TradeRoute>();
 
 	Faction(String name) {
 		this.name = name;
 		this.attackCool = random.randInt(5,20);
-		this.metal = 200;
-		this.ships = 100;
-		this.tech = 0;
-		this.credits = 1000;
+		this.resources = new int[] { 200, 100, 0, 1000 };
+		// Metal, Ships, Tech, Credits
 	}
 
 	public void print()
 	{
-		System.out.println("Faction - " + this.name + "\n   Metal: " + this.metal + "\n   Ships: " + this.ships + "\n   Tech: " + this.tech + "\n   Credits: " + this.credits);
+		System.out.println("Faction - " + this.name + "\n   Metal: " + this.resources[0] + "\n   Ships: " + this.resources[1] + "\n   Tech: " + this.resources[2] + "\n   Credits: " + this.resources[3]);
 	}
 
 	public void action()
 	{
+		// Resources
+		if (spacegame.turn % 10 == 0) {
+			int[] tempResources = {this.resources[0], this.resources[1], this.resources[2], this.resources[3]};
+			resourceGain();
+			if (this.name=="United Empires") {
+				System.out.println("===== RESOURCES GAINED THIS TURN =====");
+				System.out.println("Metal:\t " + this.resources[0] + "\t(" + (this.resources[0] - tempResources[0]) + ")" + "\nShips:\t " + this.resources[1] + "\t(" + (this.resources[1] - tempResources[1]) + ")" + "\nTech:\t " + this.resources[2] + "\t(" + (this.resources[2] - tempResources[2]) + ")" + "\nCredits: " + this.resources[3] + "\t(" + (this.resources[3] - tempResources[3]) + ")");
+			}
+		}
 		// Attacking
 		if (this.name != "United Empires") {
 			if (this.attackCool < 6) {
@@ -225,6 +168,41 @@ class Faction {
 			this.attackCool--;
 			
 		}
+	}
+
+	public void resourceGain()
+	{
+		for (int i=0; i<this.getLocs().size(); i++) {
+			int temp;
+			switch (this.getLocs().get(i).name) {
+				case "mine":
+						this.resources[0]+=random.randInt(this.getLocs().get(i).outputMin, this.getLocs().get(i).outputMax);
+					break;
+				case "fighter base":
+						for (int j=0; j<random.randInt(this.getLocs().get(i).outputMin, this.getLocs().get(i).outputMax); j++) {
+							if (this.resources[0]>=10) {
+								this.resources[1]++;
+								this.resources[0]-=10;
+							}
+						}
+					break;
+				case "research facility":
+						for (int j=0; j<random.randInt(this.getLocs().get(i).outputMin, this.getLocs().get(i).outputMax); j++) {
+							if (this.resources[3]>=100) {
+								this.resources[2]++;
+								this.resources[3]-=100;
+							}
+						}
+					break;
+				case "colonized planet":
+						this.resources[3]+=random.randInt(this.getLocs().get(i).outputMin, this.getLocs().get(i).outputMax);
+					break;
+				default:
+						System.out.println("LOCATION NAME NOT YET DEFINED");
+					break;
+			}
+		}
+
 	}
 
 	public Location randLoc()
@@ -250,13 +228,6 @@ class Faction {
 	{
 		// Pass params to attack()
 		spacegame.attack(this, targetLoc, (targetLoc.hp/7));
-		
-		/* Display extra info - uncomment above line when removing below lines
-		ArrayList<String> outputs = spacegame.attack(this, targetLoc, (targetLoc.hp/7));
-		for (int i=0; i<outputs.size(); i++) {
-			System.out.println(outputs.get(i));
-		}*/
-
 
 		// Broadcast attack outcome
 		if (targetLoc.faction == this) {
@@ -290,6 +261,50 @@ class Faction {
 
 	}
 
+	// Trading
+	public TradeRoute createTrade(int trading, int receiving, Faction fac2)
+	{
+		TradeRoute traderoute = new TradeRoute(this, fac2, trading, receiving, (this.resources[trading-1]/2), (fac2.resources[receiving-1]/2)); // Change to divide by number of trade routes
+
+		this.traderoutes.add(traderoute);
+
+		return traderoute;
+	}
+
+}
+
+class TradeRoute {
+	Faction fac1;
+	Faction fac2;
+	int trade1;
+	int trade2;
+	int amount1; // what fac1 is giving and fac2 is receiving
+	int amount2; // what fac2 is giving and fac1 is receiving
+
+	TradeRoute(Faction fac1, Faction fac2, int trade1, int trade2, int amount1, int amount2)
+	{
+		this.fac1 = fac1;
+		this.fac2 = fac2;
+		this.trade1 = trade1;
+		this.trade2 = trade2;
+		this.amount1 = amount1;
+		this.amount2 = amount2;
+	}
+
+	public void trade()
+	{
+		fac1.resources[trade1-1] -= amount1;
+		fac2.resources[trade1-1] += amount1;
+
+		fac2.resources[trade2-1] -= amount2;
+		fac1.resources[trade2-1] += amount2;
+
+		System.out.println(fac1.name + " gave " + amount1 + " " + (trade1-1) + " to " + fac2.name + " in exchange for " + amount2 + " " + (trade2-1));
+
+		// Reset trading values after giving items
+		amount1 = (fac1.resources[trade1-1]/2);
+		amount2 = (fac2.resources[trade2-1]/2);
+	}
 }
 
 class spacegame
@@ -363,22 +378,24 @@ class spacegame
 					System.out.println("Input is accepted in upper and lower case.");
 					System.out.println(" R or RESOURCES will show you your resources.");
 					System.out.println(" ATTACK prompts attack sub menu\n     X,Y,N will attack galactic coordinates X,Y with N ships.");
-					System.out.println(" LOGS shows attack logs.");
 					System.out.println(" LIST lists all known locations and their factions.");
 					System.out.println(" RSCAN prompts the radar scan menu\n     X,Y of one of your locations will scan nearby occupied locations.");
 					System.out.println(" RSCANALL scans all occupied locations nearby your locations.");					
 					System.out.println(" MAP refreshes the galactic map.");
 					System.out.println(" FMAP shows the faction map.");
+					System.out.println(" TRADE prompts the trade route sub menu.");
 					System.out.println(" C clears the screen");
+					System.out.println(" TURN displays the current turn.");
+					System.out.println(" LOGS shows attack logs.");
 					break;
 				case "R":
 				case "RESOURCES":
 					factions.get(0).print();
 					break;
+				// VIEW - remove this later (shows deatils about any X/Y)
 				case "VIEW":
-						// VIEW - remove this later (shows deatils about any X/Y)
-						tempIntArr = takeInputs(2, "X:,Y:");
-						map[tempIntArr.get(0)-1][tempIntArr.get(1)-1].print();
+					tempIntArr = takeInputs(2, "X:,Y:");
+					map[tempIntArr.get(0)-1][tempIntArr.get(1)-1].print();
 					break;
 				case "ATTACK":
 						System.out.println("Enter X and Y coordinate to attack with N ships, X,Y,N");
@@ -403,8 +420,8 @@ class spacegame
 					list();
 					break;
 				case "RSCAN":
-						tempIntArr = takeInputs(2, "X coordinate to scan:,Y coordinate to scan:");
-						rscan(tempIntArr.get(0), tempIntArr.get(1));
+					tempIntArr = takeInputs(2, "X coordinate to scan:,Y coordinate to scan:");
+					rscan(tempIntArr.get(0), tempIntArr.get(1));
 					break;
 				case "RSCANALL":
 					for (int i=0; i<factions.get(0).getLocs().size(); i++) {
@@ -418,6 +435,24 @@ class spacegame
 				case "FMAP":
 					showMap(true);
 					break;
+				case "TRADE":
+					tempIntArr = takeInputs(2, "What resource do you need?:\n1. Metal\n2. Ships\n3. Tech\n4. Credits,What resource can you trade?:\n1. Metal\n2. Ships\n3. Tech\n4. Credits");
+					System.out.println("Which faction would you like to trade with?\nFaction - Amount giving - Amount receiving");
+
+					ArrayList<Faction> tempFacArr = new ArrayList<Faction>();
+					for (int i=0; i<factions.size(); i++) {
+						if (factions.get(i).resources[tempIntArr.get(0)-1] > factions.get(0).resources[tempIntArr.get(0)-1] && factions.get(i).resources[tempIntArr.get(1)-1] < factions.get(0).resources[tempIntArr.get(1)-1])							
+							tempFacArr.add(factions.get(i));
+					}
+
+					String facOpts = "";
+					for (int i=0; i<tempFacArr.size(); i++) {
+						facOpts+=((i+1) + ". " + tempFacArr.get(i).name + "\n");
+					}
+
+					factions.get(0).createTrade(tempIntArr.get(1), tempIntArr.get(0), tempFacArr.get(((takeInputs(1, facOpts)).get(0))-1));
+					
+					break;
 				case "C":
 					// Clear map
 					for (int i=0; i<64; i++) {
@@ -428,6 +463,7 @@ class spacegame
 				case "TURN":
 					System.out.println(turn);
 					break;
+				// DEV - SHOWS ATTACK COOL DOWNS
 				case "COOLS":
 					for (int i=0; i<factions.size(); i++) {
 						System.out.println(factions.get(i).name + " : " + factions.get(i).attackCool);
@@ -459,9 +495,6 @@ class spacegame
 					System.out.println("INPUT ERROR\n");
 					break;
 			}
-			
-			if (turn%10==0)
-				System.out.println("===== RESOURCES GAINED THIS TURN =====");
 
 			gametick();
 
@@ -525,6 +558,10 @@ class spacegame
 		}
 		for (int i=0; i<factions.size(); i++) {
 			factions.get(i).action();
+			for (int j=0; j<factions.get(i).traderoutes.size(); j++) {
+				if (turn % 10 == 0)
+					factions.get(i).traderoutes.get(j).trade();
+			}
 		}
 	}
 
@@ -588,13 +625,13 @@ class spacegame
 		ArrayList<String> outputs = new ArrayList<String>();
 
 		// Max out ships integer
-		if (ships > attacker.ships) {
-			outputs.add("Only " + attacker.ships + " available out of the " + ships + " requested.");
-			ships = attacker.ships;
+		if (ships > attacker.resources[1]) {
+			outputs.add("Only " + attacker.resources[1] + " available out of the " + ships + " requested.");
+			ships = attacker.resources[1];
 		}
 
 		// Calculations
-		attacker.ships -= ships;
+		attacker.resources[1] -= ships;
 
 		int tempHp = target.hp;
 		for (int i=0; i<ships; i++) {

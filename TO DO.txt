@@ -1,4 +1,22 @@
 ======== TO DO ========
+Trade routes
+	Ship visible on map? (=)
+	AI creates trade routes
+		Trades highest amount for lowest amount
+	Fix error when no factions have right trade
+	Fix issue with player trading with wrong faction
+
+Remove switch statements for resource names, include n,n,n in resources.txt for resources arr index, amount to remove from other index, and index to remove from
+	This makes infinite resource adding to file, no changing code
+Also add name of produced resource
+	name,resource,min,max,hp,resourceIndex,cost,removalIndex 
+	mine,metal,100,230,1000,0(metal),0,0
+	fighter base,ships,15,25,500,1(ships),10(costs 10),1(metal)
+
+More resources?
+	Factories -> consumer goods*
+	colonized planets + consumer goods -> credits
+
 Attacking
 	Only alert attacks near player locations?
 	Fix error after one faction conquers all locations
@@ -10,46 +28,15 @@ Repairing damaged locations with credits (+metal +tech?)
 
 Expiring attack logs?
 
-More resources?
-	Factories -> consumer goods*
-	colonized planets + consumer goods -> credits
+Sleep in between attack outputs?
 
-Fix resource gain method
-	Shows net gain of each resource, not independent gain for each location
+Fleets take time to get to destination
+	Visible on map?
 
 Write game log to file?
 	Attack outputs
 	Resource gains for each faction
 	Trade route creations
-
-Trade routes
-	Submenu for trade route creation
-		Getting:
-		1. Metal
-		2. Tech
-		3. Consumer goods*
-		Giving:
-		1. Metal
-		2. Tech
-		3. Consumer goods*
-			Submenu for factions to trade with - max to trade per turn (intake of resource/(number of trade routes+1)) - amount to receive
-			1. Androids - 26 - 2
-			2. Humans - 18 - 5
-			3. Maxis - 31 - 3
-	Faction has integer for number of trade routes
-	Object?
-		Faction 1
-		Faction 2
-		Faction 1 trade
-		Faction 2 trade
-		Faction 1 trade amount
-		Faction 2 trade amount
-			(if visible ship)
-				trade ship x
-				trade ship y	
-		method trade
-	Ship visible on map? (=)
-
 
 Add favor towards UE/Enemy
 
